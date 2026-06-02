@@ -1,0 +1,98 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: "optional:configserver:http://localhost:8888"
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+      default-filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            fallbackUri: forward:/fallback
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+          filters:
+            - AuthenticationFilter
+        - id: course-service
+          uri: lb://course-service
+          predicates:
+            - Path=/courses/**
+          filters:
+            - AuthenticationFilter
+        - id: lecture-service
+          uri: lb://lecture-service
+          predicates:
+            - Path=/lectures/**
+          filters:
+            - AuthenticationFilter
+        - id: enrollment-service
+          uri: lb://enrollment-service
+          predicates:
+            - Path=/enrollments/**
+          filters:
+            - AuthenticationFilter
+        - id: review-service
+          uri: lb://review-service
+          predicates:
+            - Path=/reviews/**
+          filters:
+            - AuthenticationFilter
+        - id: quiz-service
+          uri: lb://quiz-service
+          predicates:
+            - Path=/quizzes/**
+          filters:
+            - AuthenticationFilter
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/notifications/**
+          filters:
+            - AuthenticationFilter
+        - id: analytics-service
+          uri: lb://analytics-service
+          predicates:
+            - Path=/analytics/**
+          filters:
+            - AuthenticationFilter
+        - id: certificate-service
+          uri: lb://certificate-service
+          predicates:
+            - Path=/certificates/**
+          filters:
+            - AuthenticationFilter
+
+# CRIT-01: JWT secret from environment variable only — no hardcoded fallback
+jwt:
+  secret: ${JWT_SECRET}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
