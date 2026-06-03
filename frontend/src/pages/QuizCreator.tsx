@@ -243,3 +243,5 @@ export const QuizCreator = () => {
     </div>
   );
 };
+
+export default QuizCreator;

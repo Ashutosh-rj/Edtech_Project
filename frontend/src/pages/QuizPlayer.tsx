@@ -223,3 +223,5 @@ export const QuizPlayer = () => {
     </div>
   );
 };
+
+export default QuizPlayer;

@@ -38,7 +38,8 @@ public class AuthController {
         credential.setName(request.getName());
         credential.setEmail(request.getEmail());
         credential.setPassword(request.getPassword());
-        credential.setRole(request.getRole() != null ? request.getRole() : "STUDENT");
+        // Always force role to STUDENT on registration to prevent self-promotion
+        credential.setRole("STUDENT");
         return service.saveUser(credential);
     }
 

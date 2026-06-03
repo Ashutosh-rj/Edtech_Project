@@ -272,3 +272,5 @@ export const CourseForm = () => {
     </div>
   );
 };
+
+export default CourseForm;

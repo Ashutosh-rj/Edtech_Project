@@ -14,6 +14,11 @@ public class AnalyticsController {
     @Autowired
     private AnalyticsService service;
 
+    @PostMapping("/course/{courseId}/enroll")
+    public void recordEnrollmentDirect(@PathVariable Long courseId) {
+        service.recordEnrollment(courseId);
+    }
+
     @GetMapping("/course/{courseId}")
     public CourseAnalytics getCourseAnalytics(
             @PathVariable Long courseId,
@@ -24,5 +29,23 @@ public class AnalyticsController {
         }
         
         return service.getAnalyticsForCourse(courseId);
+    }
+
+    @GetMapping("/admin/summary")
+    public CourseAnalytics getAdminSummary(@RequestHeader(value = "X-User-Role", defaultValue = "STUDENT") String userRole) {
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only admins can view global analytics");
+        }
+        return service.getAdminSummary();
+    }
+
+    @GetMapping("/instructor")
+    public CourseAnalytics getInstructorSummary(
+            @RequestHeader(value = "X-User-Role", defaultValue = "STUDENT") String userRole,
+            @RequestHeader("loggedInUser") String loggedInUser) {
+        if (!"INSTRUCTOR".equalsIgnoreCase(userRole) && !"ADMIN".equalsIgnoreCase(userRole)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized");
+        }
+        return service.getInstructorSummary(loggedInUser);
     }
 }

@@ -5,6 +5,7 @@ import com.edtech.enrollment.repository.EnrollmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,9 @@ public class EnrollmentService {
     @Autowired(required = false) // optional so service starts without Kafka broker
     private KafkaTemplate<String, String> kafkaTemplate;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     public Enrollment enrollStudent(String studentId, Long courseId) {
         Optional<Enrollment> existing = repository.findByStudentIdAndCourseId(studentId, courseId);
         if (existing.isPresent()) {
@@ -31,8 +35,19 @@ public class EnrollmentService {
         Enrollment saved = repository.save(enrollment);
 
         // HIGH-07: Publish enrollment event so notification-service can send confirmation email
-        if (kafkaTemplate != null) {
-            kafkaTemplate.send("course-enrollment", studentId + ":" + courseId);
+        try {
+            if (kafkaTemplate != null) {
+                kafkaTemplate.send("course-enrollment", studentId + ":" + courseId);
+            }
+        } catch (Exception e) {
+            System.err.println("Kafka send failed: " + e.getMessage());
+        }
+
+        // Direct REST call to analytics-service to bypass Kafka (for local dev)
+        try {
+            restTemplate.postForObject("http://localhost:8089/analytics/course/" + courseId + "/enroll", null, Void.class);
+        } catch (Exception e) {
+            System.err.println("Failed to notify analytics-service via REST: " + e.getMessage());
         }
 
         return saved;

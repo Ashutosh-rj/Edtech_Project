@@ -225,3 +225,5 @@ export const LecturePlayer = () => {
   );
 };
 
+
+export default LecturePlayer;

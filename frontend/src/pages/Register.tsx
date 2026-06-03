@@ -7,7 +7,6 @@ export const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('STUDENT');
   const navigate = useNavigate();
 
   const [error, setError] = useState('');
@@ -22,8 +21,7 @@ export const Register = () => {
       await axios.post(`${apiBaseUrl}/auth/register`, {
         name,
         email,
-        password,
-        role
+        password
       });
       navigate('/login');
     } catch (err: any) {
@@ -106,20 +104,6 @@ export const Register = () => {
               />
             </div>
 
-            <div className="input-group">
-              <label htmlFor="role">Account Type</label>
-              <select
-                id="role"
-                className="input-control"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              >
-                <option value="STUDENT">Student</option>
-                <option value="INSTRUCTOR">Instructor</option>
-              </select>
-            </div>
-
             <button type="submit" className="btn btn-primary w-full" style={{ marginTop: 'var(--space-8)', height: '44px', fontSize: '15px' }} disabled={loading}>
               {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
@@ -134,3 +118,5 @@ export const Register = () => {
     </div>
   );
 };
+
+export default Register;

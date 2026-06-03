@@ -23,6 +23,7 @@ public class CourseAnalytics {
     private int completedEnrollments;
     private double averageRating;
     private int totalReviews;
+    private double totalRevenue;
 
     private LocalDateTime lastUpdated;
 

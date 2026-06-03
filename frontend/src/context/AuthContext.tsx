@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { authStorage } from '../utils/authStorage';
 
 interface AuthContextType {
   loggedInUser: string | null;
@@ -33,10 +34,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
 
+  // Restore session from tab-isolated storage on initialization
   useEffect(() => {
-    const user = localStorage.getItem('loggedInUser');
-    const storedToken = localStorage.getItem('token');
-    const storedRole = localStorage.getItem('role');
+    const user = authStorage.getCurrentUser();
+    const storedToken = authStorage.getAccessToken();
+    const storedRole = authStorage.getRole();
+    
     if (user && storedToken) {
       setLoggedInUser(user);
       setToken(storedToken);
@@ -58,15 +61,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const payload = decodeJwtPayload(receivedToken);
       const userRole = (payload?.role as string) ?? 'STUDENT';
 
-      localStorage.setItem('loggedInUser', email);
-      localStorage.setItem('token', receivedToken);
-      localStorage.setItem('role', userRole);
+      // Persist to isolated tab storage
+      authStorage.setCurrentUser(email);
+      authStorage.setAccessToken(receivedToken);
+      authStorage.setRole(userRole);
+      
+      // Update React state
       setLoggedInUser(email);
       setToken(receivedToken);
       setRole(userRole);
     } catch (error: unknown) {
       console.error('Login failed', error);
-      // Extract the real error message from the backend response body
       const axiosErr = error as { response?: { data?: { message?: string } }; message?: string };
       const backendMsg = axiosErr?.response?.data?.message;
       throw new Error(backendMsg || axiosErr?.message || 'Login failed. Ensure backend auth-service is running.');
@@ -74,9 +79,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('loggedInUser');
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    // Clear only this tab's session storage
+    authStorage.clearSession();
+    
+    // Clear React state
     setLoggedInUser(null);
     setToken(null);
     setRole(null);
